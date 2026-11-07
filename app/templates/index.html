@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>echobox-go · {{ user }}</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <style>
+    :root {
+      --ink: #0E1116; --panel: #161B22; --line: #262D36;
+      --text: #E6EDF3; --muted: #9AA6B2; --signal: #2DD4BF; --danger: #F87171;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; background: var(--ink); color: var(--text);
+      font: 16px/1.5 Inter, system-ui, sans-serif;
+    }
+    header, main { max-width: 720px; margin: 0 auto; padding: 24px; }
+    header { display: flex; align-items: center; gap: 14px; }
+    .wordmark { font-family: "Space Grotesk", system-ui, sans-serif; font-weight: 600; font-size: 28px; letter-spacing: -0.03em; }
+    .wordmark span { color: var(--signal); }
+    .who { margin-left: auto; color: var(--muted); font-family: "JetBrains Mono", monospace; font-size: 14px; }
+    .tagline { color: var(--muted); margin: 0 0 24px; }
+    form { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 24px; display: grid; gap: 18px; }
+    label { display: grid; gap: 6px; font-weight: 500; }
+    .hint { color: var(--muted); font-weight: 400; font-size: 14px; }
+    select, input, textarea {
+      font: inherit; color: var(--text); background: var(--ink);
+      border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; min-height: 44px;
+    }
+    textarea { min-height: 120px; font-family: "JetBrains Mono", monospace; font-size: 14px; }
+    select:focus, input:focus, textarea:focus, button:focus-visible { outline: 2px solid var(--signal); outline-offset: 2px; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    @media (max-width: 560px) { .row { grid-template-columns: 1fr; } }
+    button {
+      justify-self: start; font: inherit; font-weight: 600; color: var(--ink); background: var(--signal);
+      border: 0; border-radius: 10px; padding: 12px 20px; min-height: 44px; cursor: pointer;
+    }
+    .msg { border-radius: 10px; padding: 12px 14px; margin-bottom: 18px; }
+    .ok { background: rgba(45, 212, 191, .12); border: 1px solid var(--signal); }
+    .err { background: rgba(248, 113, 113, .12); border: 1px solid var(--danger); }
+    footer { max-width: 720px; margin: 0 auto; padding: 0 24px 32px; color: var(--muted); font-size: 13px; }
+  </style>
+</head>
+<body>
+  <header>
+    <img src="/mark.svg" alt="" width="44" height="44">
+    <div class="wordmark">echobox<span>-go</span></div>
+    <div class="who">{{ user }}</div>
+  </header>
+  <main>
+    <p class="tagline">Your Linux environment, on any computer.</p>
+
+    {% if saved %}<div class="msg ok" role="status">Saved. Your ISO will be rebuilt from this profile.</div>{% endif %}
+    {% if error %}<div class="msg err" role="alert">Not saved: {{ error }}</div>{% endif %}
+
+    <form method="post" action="/profile">
+      <div class="row">
+        <label>Base system
+          <select name="base">
+            {% for b in bases %}<option value="{{ b }}" {% if profile.base == b %}selected{% endif %}>{{ {"cachyos": "CachyOS", "arch": "Arch"}[b] }}</option>{% endfor %}
+          </select>
+        </label>
+        <label>CPU level <span class="hint">generic boots on any PC</span>
+          <select name="cpu_level">
+            {% for c in cpu_levels %}<option value="{{ c }}" {% if (profile.cpu_level or "generic") == c %}selected{% endif %}>{{ c }}</option>{% endfor %}
+          </select>
+        </label>
+      </div>
+      <div class="row">
+        <label>Desktop
+          <select name="desktop">
+            {% for d in desktops %}<option value="{{ d }}" {% if profile.desktop == d %}selected{% endif %}>{{ d }}</option>{% endfor %}
+          </select>
+        </label>
+        <label>Keyboard layout <span class="hint">e.g. se, dvorak, us</span>
+          <input name="keymap" value="{{ profile.keymap if profile.keymap is string else '' }}" required pattern="[a-z0-9_-]+" autocomplete="off">
+        </label>
+      </div>
+      <label>Extra packages <span class="hint">one per line or comma-separated</span>
+        <textarea name="packages" spellcheck="false">{{ packages_text }}</textarea>
+      </label>
+      <button type="submit">Save profile</button>
+    </form>
+  </main>
+  <footer>echobox-go is an independent project and is not affiliated with Arch Linux or CachyOS.</footer>
+</body>
+</html>
